@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema HG — Varizes Sus</title>
+<style>
+  :root {
+    --azul-dark: #1a3a5c;
+    --azul-med: #2c5f8a;
+    --azul: #4a6fa5;
+    --verde-dark: #1b5e20;
+    --verde: #2e7d32;
+    --azul-hosp-dark: #0d47a1;
+    --azul-hosp: #1565c0;
+    --laranja: #e65100;
+    --roxo: #4a235a;
+    --cinza-bg: #f0f4f8;
+    --branco: #ffffff;
+    --texto: #1a2533;
+    --borda: #d0dce8;
+    --sombra: 0 2px 8px rgba(0,0,0,0.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--cinza-bg); color: var(--texto); min-height: 100vh; }
+
+  /* HEADER */
+  header { background: var(--azul-dark); color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
+  header span { font-size: 12px; opacity: 0.7; }
+
+  /* TABS */
+  .tabs { display: flex; background: var(--azul-med); padding: 0 24px; gap: 4px; }
+  .tab { padding: 10px 20px; cursor: pointer; color: rgba(255,255,255,0.7); font-size: 13px; font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  .tab:hover { color: white; }
+  .tab.active { color: white; border-bottom-color: #ffd54f; }
+
+  /* CONTENT */
+  .content { display: none; padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .content.active { display: block; }
+
+  /* CARDS TOPO */
+  .cards-top { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .card-stat { background: white; border-radius: 10px; padding: 16px; box-shadow: var(--sombra); border-left: 4px solid var(--azul); }
+  .card-stat.verde { border-left-color: var(--verde); }
+  .card-stat.hosp { border-left-color: var(--azul-hosp); }
+  .card-stat.laranja { border-left-color: var(--laranja); }
+  .card-stat h3 { font-size: 11px; text-transform: uppercase; color: #666; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .card-stat .num { font-size: 28px; font-weight: 700; color: var(--azul-dark); }
+  .card-stat .sub { font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* FORM CADASTRO */
+  .form-card { background: white; border-radius: 10px; padding: 22px; box-shadow: var(--sombra); margin-bottom: 24px; }
+  .form-card h2 { font-size: 15px; font-weight: 700; color: var(--azul-dark); margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid var(--borda); }
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: #555; }
+  .form-group input, .form-group select, .form-group textarea {
+    border: 1.5px solid var(--borda); border-radius: 7px; padding: 9px 12px;
+    font-size: 13px; color: var(--texto); background: #fafbfc;
+    transition: border-color 0.2s; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--azul); background: white; }
+  .form-group.full { grid-column: 1 / -1; }
+  .btn-primary {
+    background: var(--azul-dark); color: white; border: none; padding: 10px 24px;
+    border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--azul-med); }
+  .btn-sm {
+    padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: opacity 0.2s;
+  }
+  .btn-sm:hover { opacity: 0.85; }
+  .btn-verde { background: var(--verde); color: white; }
+  .btn-hosp { background: var(--azul-hosp); color: white; }
+  .btn-laranja { background: var(--laranja); color: white; }
+  .btn-roxo { background: var(--roxo); color: white; }
+  .btn-danger { background: #c62828; color: white; }
+  .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+
+  /* TABELA */
+  .table-card { background: white; border-radius: 10px; box-shadow: var(--sombra); overflow: hidden; }
+  .table-header { padding: 16px 20px; border-bottom: 2px solid var(--borda); display: flex; justify-content: space-between; align-items: center; }
+  .table-header h2 { font-size: 15px; font-weight: 700; color: var(--azul-dark); }
+  .search-box { padding: 7px 14px; border: 1.5px solid var(--borda); border-radius: 20px; font-size: 13px; outline: none; width: 240px; }
+  .search-box:focus { border-color: var(--azul); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: #e8eef5; }
+  thead th { padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #445; text-align: left; letter-spacing: 0.4px; }
+  tbody tr { border-bottom: 1px solid #edf0f5; transition: background 0.15s; }
+  tbody tr:hover { background: #f5f8fc; }
+  tbody td { padding: 11px 14px; font-size: 13px; }
+  .empty-row td { text-align: center; color: #aaa; padding: 30px; font-style: italic; }
+
+  /* BADGES */
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .badge-triagem { background: #fff3cd; color: #856404; }
+  .badge-termo { background: #f8d7da; color: #721c24; }
+  .badge-espuma { background: #d4edda; color: #155724; }
+  .badge-cirurgia { background: #cce5ff; color: #004085; }
+  .badge-agendado { background: #e2d9f3; color: #3d1f6e; }
+  .badge-concluido { background: #c3e6cb; color: #0f5132; }
+
+  /* FLUXO VISUAL MINI */
+  .fluxo-steps { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+  .step-pill {
+    padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 2px solid transparent; opacity: 0.5; transition: all 0.2s;
+  }
+  .step-pill.ativo { opacity: 1; border-color: currentColor; }
+  .step-pill.s1 { background: #e3f2fd; color: var(--azul-dark); }
+  .step-pill.s2 { background: #fff3e0; color: #e65100; }
+  .step-pill.s3 { background: #e8f5e9; color: var(--verde-dark); }
+  .step-pill.s4 { background: #e3f0ff; color: var(--azul-hosp-dark); }
+  .step-arrow { color: #aaa; font-size: 14px; }
+
+  /* AGENDA */
+  .agenda-triagem-row { margin-bottom: 20px; }
+  .agenda-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .agenda-col { background: white; border-radius: 10px; box-shadow: var(--sombra); overflow: hidden; }
+  .agenda-header { padding: 14px 18px; color: white; display: flex; align-items: center; gap: 10px; }
+  .agenda-header.triagem { background: var(--laranja); }
+  .agenda-header.espuma { background: var(--verde-dark); }
+  .agenda-header.cirurgia { background: var(--azul-hosp-dark); }
+  .agenda-header h3 { font-size: 14px; font-weight: 700; }
+  .agenda-body { padding: 14px; }
+  .agenda-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+  .agenda-item { border-radius: 8px; padding: 10px 14px; border-left: 4px solid; }
+  .agenda-item.triagem { background: #fff8f0; border-left-color: var(--laranja); }
+  .agenda-item.espuma { background: #f1faf1; border-left-color: var(--verde); }
+  .agenda-item.cirurgia { background: #f0f4ff; border-left-color: var(--azul-hosp); }
+  .agenda-item .ai-nome { font-weight: 600; font-size: 13px; }
+  .agenda-item .ai-data { font-size: 12px; color: #555; margin-top: 2px; }
+  .agenda-item .ai-obs { font-size: 11px; color: #888; margin-top: 3px; font-style: italic; }
+  .agenda-empty { text-align: center; color: #aaa; font-size: 13px; padding: 20px; font-style: italic; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 12px; padding: 28px; width: 480px; box-shadow: 0 8px 40px rgba(0,0,0,0.25); }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--azul-dark); }
+  .modal .close-btn { float: right; cursor: pointer; font-size: 18px; color: #888; margin-top: -4px; }
+
+  /* ALERT */
+  .alert { padding: 10px 16px; border-radius: 7px; font-size: 13px; margin-bottom: 14px; display: none; }
+  .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+  .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
+
+  /* FILTER ROW */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-btn { padding: 5px 14px; border-radius: 20px; border: 1.5px solid var(--borda); background: white; font-size: 12px; cursor: pointer; font-weight: 600; color: #555; transition: all 0.2s; }
+  .filter-btn:hover, .filter-btn.active { background: var(--azul-dark); color: white; border-color: var(--azul-dark); }
+
+
+  /* TERMOS */
+  .termos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .termo-card { background: white; border-radius: 10px; box-shadow: var(--sombra); overflow: hidden; }
+  .termo-card-header { padding: 14px 20px; color: white; display: flex; align-items: center; justify-content: space-between; }
+  .termo-card-header.cirurgia { background: var(--azul-hosp-dark); }
+  .termo-card-header.espuma { background: var(--verde-dark); }
+  .termo-card-header h3 { font-size: 14px; font-weight: 700; }
+  .termo-body { padding: 24px 28px; font-size: 13px; line-height: 1.7; color: #222; max-height: 520px; overflow-y: auto; border-bottom: 1px solid var(--borda); }
+  .termo-body p { margin-bottom: 8px; }
+  .termo-body strong { color: #111; }
+  .termo-actions { padding: 14px 20px; display: flex; gap: 10px; background: #f8fafc; }
+  @media (max-width: 800px) { .termos-grid { grid-template-columns: 1fr; } }
+  @media print {
+    .tabs, header, .termo-actions, .termo-card-header { display: none !important; }
+    .termo-body { max-height: none !important; overflow: visible !important; font-size: 12pt; }
+    .termos-grid { grid-template-columns: 1fr !important; }
+    .print-target ~ .termo-card { display: none; }
+  }
+
+  @media (max-width: 700px) {
+    .cards-top { grid-template-columns: repeat(2,1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+    .agenda-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏥 Sistema de Acompanhamento — Varizes SUS</h1>
+  <span id="clock"></span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+  <div class="tab" onclick="showTab('cadastro')">➕ Cadastrar Paciente</div>
+  <div class="tab" onclick="showTab('pacientes')">📋 Pacientes</div>
+  <div class="tab" onclick="showTab('agenda')">📅 Agendas</div>
+  <div class="tab" onclick="showTab('termos')">📄 Termos TCLE</div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="tab-dashboard" class="content active">
+  <div class="cards-top">
+    <div class="card-stat">
+      <h3>Total de Pacientes</h3>
+      <div class="num" id="stat-total">0</div>
+      <div class="sub">cadastrados no sistema</div>
+    </div>
+    <div class="card-stat laranja">
+      <h3>Aguardando Triagem</h3>
+      <div class="num" id="stat-triagem">0</div>
+      <div class="sub">1ª consulta pendente</div>
+    </div>
+    <div class="card-stat verde">
+      <h3>Fila — Espuma</h3>
+      <div class="num" id="stat-espuma">0</div>
+      <div class="sub">pacientes aguardando</div>
+    </div>
+    <div class="card-stat hosp">
+      <h3>Fila — Cirurgia</h3>
+      <div class="num" id="stat-cirurgia">0</div>
+      <div class="sub">pacientes aguardando</div>
+    </div>
+  </div>
+
+  <!-- Fluxo visual -->
+  <div class="form-card">
+    <h2>Fluxo do Atendimento</h2>
+    <div class="fluxo-steps">
+      <div class="step-pill s1 ativo" onclick="filtrarPorEtapa('triagem')">📞 1ª Chamada / Triagem</div>
+      <span class="step-arrow">→</span>
+      <div class="step-pill s2 ativo" onclick="filtrarPorEtapa('termo')">📋 Termo de Conhecimento</div>
+      <span class="step-arrow">→</span>
+      <div class="step-pill s3 ativo" onclick="filtrarPorEtapa('espuma')">💉 Fila Espuma</div>
+      <span class="step-arrow">/</span>
+      <div class="step-pill s4 ativo" onclick="filtrarPorEtapa('cirurgia')">🏨 Fila Cirurgia</div>
+    </div>
+    <p style="font-size:12px;color:#888;">Clique em uma etapa para ver os pacientes nessa fase.</p>
+  </div>
+
+  <!-- Últimos cadastrados -->
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Últimos Pacientes Cadastrados</h2>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>Data Cadastro</th>
+          <th>Etapa Atual</th>
+          <th>Procedimento</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-dashboard">
+        <tr class="empty-row"><td colspan="5">Nenhum paciente cadastrado ainda.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== CADASTRO ===== -->
+<div id="tab-cadastro" class="content">
+  <div class="form-card">
+    <h2>➕ Cadastrar Novo Paciente</h2>
+    <div id="alert-cadastro" class="alert"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nome Completo *</label>
+        <input type="text" id="f-nome" placeholder="Nome do paciente">
+      </div>
+      <div class="form-group">
+        <label>CPF</label>
+        <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
+      </div>
+      <div class="form-group">
+        <label>Data de Nascimento</label>
+        <input type="date" id="f-nasc">
+      </div>
+      <div class="form-group">
+        <label>Telefone</label>
+        <input type="text" id="f-tel" placeholder="(00) 00000-0000">
+      </div>
+      <div class="form-group">
+        <label>Data da 1ª Chamada *</label>
+        <input type="date" id="f-data-chamada">
+      </div>
+      <div class="form-group">
+        <label>Médico Assistente</label>
+        <input type="text" id="f-medico" placeholder="Nome do médico">
+      </div>
+      <div class="form-group">
+        <label>Procedimento Indicado *</label>
+        <select id="f-procedimento">
+          <option value="">Selecionar após triagem</option>
+          <option value="espuma">Escleroterapia com Espuma</option>
+          <option value="cirurgia">Cirurgia de Varizes (Hospital)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Etapa Atual *</label>
+        <select id="f-etapa">
+          <option value="triagem">1ª Chamada / Triagem</option>
+          <option value="termo">Aguardando Assinatura do Termo</option>
+          <option value="fila-espuma">Fila — Espuma</option>
+          <option value="fila-cirurgia">Fila — Cirurgia</option>
+          <option value="agendado">Agendado</option>
+          <option value="concluido">Concluído</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Termo de Conhecimento</label>
+        <select id="f-termo">
+          <option value="nao">Não assinado</option>
+          <option value="sim">Assinado</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <textarea id="f-obs" rows="3" placeholder="Anotações clínicas, histórico relevante..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="cadastrarPaciente()">💾 Cadastrar Paciente</button>
+      <button class="btn-primary" style="background:#555" onclick="limparForm()">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PACIENTES ===== -->
+<div id="tab-pacientes" class="content">
+  <div class="form-card" style="padding:14px 20px">
+    <div class="filter-row">
+      <span style="font-size:12px;font-weight:700;color:#555;align-self:center">Filtrar:</span>
+      <button class="filter-btn active" onclick="filtrar('todos',this)">Todos</button>
+      <button class="filter-btn" onclick="filtrar('triagem',this)">📞 Triagem</button>
+      <button class="filter-btn" onclick="filtrar('termo',this)">📋 Termo</button>
+      <button class="filter-btn" onclick="filtrar('fila-espuma',this)">💉 Fila Espuma</button>
+      <button class="filter-btn" onclick="filtrar('fila-cirurgia',this)">🏨 Fila Cirurgia</button>
+      <button class="filter-btn" onclick="filtrar('agendado',this)">📅 Agendado</button>
+      <button class="filter-btn" onclick="filtrar('concluido',this)">✅ Concluído</button>
+    </div>
+  </div>
+  <div class="table-card">
+    <div class="table-header">
+      <h2>Lista de Pacientes</h2>
+      <input type="text" class="search-box" placeholder="🔍 Buscar por nome ou CPF..." oninput="buscar(this.value)">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          <th>CPF</th>
+          <th>Telefone</th>
+          <th>Médico</th>
+          <th>Etapa</th>
+          <th>Procedimento</th>
+          <th>Termo</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-pacientes">
+        <tr class="empty-row"><td colspan="9">Nenhum paciente cadastrado ainda.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== AGENDA ===== -->
+<div id="tab-agenda" class="content">
+  <div class="form-card">
+    <h2>📅 Agendar Consulta / Procedimento</h2>
+    <div id="alert-agenda" class="alert"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Tipo de Agenda *</label>
+        <select id="ag-tipo" onchange="atualizarPacientesAgenda()">
+          <option value="triagem">📞 1ª Consulta / Triagem</option>
+          <option value="espuma">💉 Espuma</option>
+          <option value="cirurgia">🏨 Cirurgia Hospitalar</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Paciente *</label>
+        <select id="ag-paciente"></select>
+      </div>
+      <div class="form-group">
+        <label>Data *</label>
+        <input type="date" id="ag-data">
+      </div>
+      <div class="form-group">
+        <label>Horário *</label>
+        <input type="time" id="ag-hora">
+      </div>
+      <div class="form-group">
+        <label>Local / Hospital</label>
+        <input type="text" id="ag-local" placeholder="Ex: Amb. 3, HUWC...">
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <textarea id="ag-obs" rows="2" placeholder="Preparo, orientações..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-primary" onclick="agendarPaciente()">📅 Confirmar Agendamento</button>
+    </div>
+  </div>
+
+  <!-- Agenda Triagem (largura total) -->
+  <div class="agenda-triagem-row">
+    <div class="agenda-col">
+      <div class="agenda-header triagem">
+        <span style="font-size:20px">📞</span>
+        <h3>Agenda — 1ª Consulta / Triagem</h3>
+      </div>
+      <div class="agenda-body" id="agenda-triagem">
+        <div class="agenda-empty">Nenhuma consulta de triagem agendada.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Espuma + Cirurgia lado a lado -->
+  <div class="agenda-grid">
+    <div class="agenda-col">
+      <div class="agenda-header espuma">
+        <span style="font-size:20px">💉</span>
+        <h3>Agenda — Espuma</h3>
+      </div>
+      <div class="agenda-body" id="agenda-espuma">
+        <div class="agenda-empty">Nenhum agendamento de espuma.</div>
+      </div>
+    </div>
+    <div class="agenda-col">
+      <div class="agenda-header cirurgia">
+        <span style="font-size:20px">🏨</span>
+        <h3>Agenda — Cirurgia Hospitalar</h3>
+      </div>
+      <div class="agenda-body" id="agenda-cirurgia">
+        <div class="agenda-empty">Nenhum agendamento de cirurgia.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===== TERMOS TCLE ===== -->
+<div id="tab-termos" class="content">
+  <div class="form-card" style="margin-bottom:20px">
+    <h2>📄 Termos de Consentimento Livre e Esclarecido</h2>
+    <p style="font-size:13px;color:#666;margin-top:6px">Clique em "Imprimir" para gerar a versão para assinatura do paciente.</p>
+  </div>
+  <div class="termos-grid">
+    <!-- Cirurgia -->
+    <div class="termo-card" id="termo-card-cirurgia">
+      <div class="termo-card-header cirurgia">
+        <h3>🏨 TCLE — Cirurgia de Varizes</h3>
+      </div>
+      <div class="termo-body" id="termo-body-cirurgia">
+        <p><strong>HOSPITAL GERAL DE CAXIAS DO SUL</strong></p><p><strong>UNIVERSIDADE DE CAXIAS DO SUL – UCS</strong></p><p>Serviço de Cirurgia Vascular e Angiologia</p><p><strong>TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO</strong></p><p><strong>CIRURGIA DE VARIZES DOS MEMBROS INFERIORES</strong></p><p>(Resolução CFM n.º 1.931/2009 – Código de Ética Médica)</p><p><strong>IDENTIFICAÇÃO DO PACIENTE</strong></p><p><strong>Paciente: </strong>__________________________________________________________________</p><p><strong>Data de Nascimento: </strong>___/___/______     <strong>CPF: </strong>__________________________</p><p><strong>Prontuário nº: </strong>________________________     <strong>Data da cirurgia: </strong>___/___/______</p><p><strong>Local da cirurgia: </strong>Hospital Geral de Caxias do Sul</p><p>Por meio deste instrumento particular, eu, _____________________________________________, portador(a) do RG nº ____________________, declaro que fui devidamente esclarecido(a) acerca do procedimento de <strong>CIRURGIA DE VARIZES DOS MEMBROS INFERIORES</strong> e, de forma livre e espontânea, autorizo a sua realização, estando ciente das condições a seguir:</p><p><strong>1. DIAGNÓSTICO</strong></p><p>Fui informado(a) de que sou portador(a) de insuficiência venosa crônica / varizes dos membros inferiores com indicação cirúrgica. O diagnóstico foi estabelecido com base em avaliação clínica e exame de ultrassonografia vascular com Doppler colorido. O procedimento indicado, após avaliação das opções disponíveis, é a <strong>cirurgia de varizes</strong>, que poderá incluir: safenectomia (retirada da veia safena), flebectomia (retirada de tributárias varicosas) e/ou ligadura de perfurantes insuficientes, conforme planejamento cirúrgico individualizado.</p><p><strong>2. OBJETIVO DO TRATAMENTO</strong></p><p>O objetivo é a melhora da circulação sanguínea dos membros inferiores, com alívio dos sintomas (dor, peso, inchaço, câimbras, coceira) e melhora do aspecto estético. Estou ciente de que o tratamento pode não ser definitivo e que novas varizes podem surgir ao longo do tempo, podendo ser necessário tratamento complementar.</p><p><strong>3. ANESTESIA</strong></p><p>Fui informado(a) de que a anestesia será realizada por médico anestesiologista, profissional autônomo em relação ao cirurgião, cujo ato médico é totalmente independente. A modalidade anestésica (raquidiana, peridural, geral ou local com sedação) será definida pelo anestesiologista de acordo com as condições clínicas e o porte cirúrgico. Os riscos específicos da anestesia serão esclarecidos pelo anestesiologista antes do procedimento.</p><p><strong>4. COMPLICAÇÕES E RISCOS</strong></p><p>Estou ciente de que, como qualquer procedimento cirúrgico, a cirurgia de varizes não é isenta de riscos. Os principais são:</p><p><strong>a) Comuns e habitualmente temporários: </strong>edema (inchaço) dos membros inferiores; hematomas (manchas roxas) ao longo do trajeto operado; seroma (acúmulo de líquido sob a pele); dor local; equimose; distúrbios transitórios da sensibilidade da pele (formigamento, dormência) por comprometimento de ramos sensitivos cutâneos.</p><p><strong>b) Infecção: </strong>infecção superficial da ferida operatória (celulite, deiscência), infecção profunda; linfangite (inflamação dos vasos linfáticos); linfocele (acúmulo de linfa).</p><p><strong>c) Tromboembolismo: </strong>trombose venosa profunda (TVP) dos membros inferiores e embolia pulmonar – complicações raras mas potencialmente graves, cuja prevenção inclui anticoagulação profilática, meias de compressão e deambulação precoce.</p><p><strong>d) Lesões de estruturas adjacentes: </strong>lesão acidental de artéria, nervo (safeno, sural, fibular) ou vaso linfático, podendo ocasionar alterações de sensibilidade definitivas, hematoma ou comprometimento circulatório.</p><p><strong>e) Cicatrizes: </strong>cicatrizes hipertróficas ou queloides nas incisões realizadas.</p><p><strong>f) Recorrência: </strong>reaparecimento de varizes em curto, médio ou longo prazo, podendo necessitar de tratamentos complementares (escleroterapia, nova cirurgia).</p><p><strong>g) Riscos anestésicos e gerais: </strong>reação alérgica ao anestésico; complicações cardiorrespiratórias; intercorrências clínicas intraoperatórias ou pós-operatórias. Em caso de intercorrência grave durante a cirurgia, o cirurgião poderá adotar procedimentos adicionais não previamente programados, visando à segurança e à vida do paciente.</p><p><strong>5. HEMOTRANSFUSÃO</strong></p><p>Em caso de necessidade de transfusão sanguínea, estou ciente de que, apesar de todas as medidas de controle adotadas pelos serviços de hemoterapia, existe um risco residual mínimo de transmissão de agentes infecciosos (hepatites, HIV e outros). Autorizo a transfusão de hemoderivados caso seja necessária para a minha segurança, salvo convicção religiosa ou recusa formal registrada em separado.</p><p><strong>6. INTERCORRÊNCIAS CIRÚRGICAS</strong></p><p>Estou ciente de que, havendo complicações ou situações imprevistas durante a cirurgia, o cirurgião poderá: chamar outros especialistas conforme a necessidade; alterar a técnica cirúrgica originalmente planejada; realizar procedimentos adicionais que se façam necessários para a minha segurança, especialmente em caso de iminente risco de vida.</p><p><strong>7. TRATAMENTOS PÓS-OPERATÓRIOS</strong></p><p>Fui informado(a) da possibilidade de necessidade de tratamentos complementares após a cirurgia, como escleroterapia para vasos residuais, e da importância do acompanhamento angiológico/vascular periódico a longo prazo. Recebi as instruções relativas ao pré e pós-operatório: uso de meias de compressão, deambulação precoce, higiene das feridas operatórias, sinais de alerta e retorno médico programado.</p><p><strong>8. ALTERNATIVAS TERAPÊUTICAS</strong></p><p>Fui informado(a) das demais opções de tratamento disponíveis: uso de meias elásticas compressivas, escleroterapia (líquida ou com espuma), termoablação endovenosa por laser (EVLT) ou radiofrequência (VNUS). Optei, em conjunto com meu médico, pela cirurgia convencional como melhor opção para o meu caso.</p><p><strong>9. ESCLARECIMENTOS E DIREITO DE RECUSA</strong></p><p>Declaro que, além das informações constantes neste Termo, fui esclarecido(a) verbalmente pelo médico responsável, tendo tido oportunidade de sanar todas as minhas dúvidas. Sei que posso revogar este consentimento a qualquer momento antes do início da cirurgia, sem qualquer prejuízo ao meu acompanhamento e tratamento. Estou ciente de que, apesar do empenho da equipe médica, não existe garantia absoluta de resultado cirúrgico.</p><p><strong>10. DOCUMENTAÇÃO CIENTÍFICA</strong></p><p>Autorizo a documentação fotográfica ou em vídeo do procedimento cirúrgico, que poderá ser utilizada para fins científicos e/ou didáticos, garantindo-se o sigilo e o anonimato conforme a legislação vigente (Lei nº 13.709/2018 – LGPD).</p><p><strong>DECLARAÇÃO E ASSINATURAS</strong></p><p>Declaro que li (ou que me foi lido) e compreendi o conteúdo deste Termo de Consentimento Livre e Esclarecido, que todas as minhas dúvidas foram devidamente esclarecidas e que concordo, de forma livre e consciente, com a realização do procedimento cirúrgico descrito.</p><p>Caxias do Sul, _______ de __________________________ de ____________.</p><p>_______________________________________________</p><p><strong>Assinatura do Paciente / Representante Legal</strong></p><p>Nome: _______________________________________________     Doc.: _____________________</p><p>_______________________________________________</p><p><strong>Assinatura e Carimbo do Médico Responsável</strong></p><p>(Carimbo com nome completo, especialidade e CRM)</p><p>_______________________________________________</p><p><strong>Assinatura da Testemunha (opcional)</strong></p><p>Nome: _______________________________________________</p><p>Este documento é emitido em duas vias: uma para o paciente e uma para o prontuário médico.</p><p>Hospital Geral de Caxias do Sul | Universidade de Caxias do Sul – UCS</p>
+      </div>
+      <div class="termo-actions">
+        <button class="btn-primary" onclick="imprimirTermo('cirurgia')">🖨️ Imprimir Termo</button>
+        <button class="btn-primary" style="background:var(--azul-med)" onclick="baixarTermo('cirurgia')">⬇️ Baixar HTML</button>
+      </div>
+    </div>
+    <!-- Espuma -->
+    <div class="termo-card" id="termo-card-espuma">
+      <div class="termo-card-header espuma">
+        <h3>💉 TCLE — Espuma Densa</h3>
+      </div>
+      <div class="termo-body" id="termo-body-espuma">
+        <p><strong>HOSPITAL GERAL DE CAXIAS DO SUL</strong></p><p><strong>UNIVERSIDADE DE CAXIAS DO SUL – UCS</strong></p><p>Serviço de Cirurgia Vascular e Angiologia</p><p><strong>TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO</strong></p><p><strong>TRATAMENTO DE VARIZES COM ESPUMA DENSA</strong></p><p><strong>(ESCLEROTERAPIA COM ESPUMA)</strong></p><p>(Resolução CFM n.º 1.931/2009 – Código de Ética Médica)</p><p><strong>IDENTIFICAÇÃO DO PACIENTE</strong></p><p><strong>Paciente: </strong>__________________________________________________________________</p><p><strong>Data de Nascimento: </strong>___/___/______     <strong>CPF: </strong>__________________________</p><p><strong>Prontuário nº: </strong>________________________     <strong>Data do procedimento: </strong>___/___/______</p><p>Por meio deste instrumento particular, eu, _____________________________________________, portador(a) do RG nº ____________________, declaro que fui devidamente esclarecido(a) acerca do procedimento de <strong>ESCLEROTERAPIA COM ESPUMA DENSA PARA TRATAMENTO DE VARIZES</strong> e, de forma livre e espontânea, autorizo a sua realização, estando ciente das condições a seguir:</p><p><strong>1. O QUE É O PROCEDIMENTO</strong></p><p>A escleroterapia com espuma densa consiste na aplicação, por meio de injeções, de uma substância química esclerosante (habitualmente polidocanol) na forma de espuma dentro das veias varicosas. A espuma provoca uma reação na parede venosa que leva ao fechamento e à posterior absorção da veia tratada, eliminando as varizes. O procedimento é realizado em nível ambulatorial, geralmente sem necessidade de internação hospitalar.</p><p><strong>2. OBJETIVO DO TRATAMENTO</strong></p><p>O objetivo é a melhora da circulação sanguínea dos membros inferiores, com redução dos sintomas (dor, peso, inchaço, câimbras) e do aspecto estético decorrentes das varizes. Estou ciente de que o tratamento pode não ser definitivo e que novas varizes podem surgir ao longo do tempo, sendo necessário acompanhamento periódico.</p><p><strong>3. DIAGNÓSTICO</strong></p><p>Fui informado(a) de que sou portador(a) de insuficiência venosa crônica / varizes dos membros inferiores e que o procedimento indicado é a melhor opção terapêutica para o meu caso, após avaliação médica criteriosa, incluindo exame de ultrassonografia vascular (Doppler) quando necessário.</p><p><strong>4. COMPLICAÇÕES E RISCOS</strong></p><p>Estou ciente de que, como qualquer procedimento médico, a escleroterapia com espuma densa não é isenta de riscos. Os principais são:</p><p><strong>a) Comuns e habitualmente temporários: </strong>dor ou ardência no local da injeção; equimose (mancha roxa); edema (inchaço) local; eritema (vermelhidão); pigmentação cutânea marrom-acinzentada (pode ser permanente em alguns casos); neovascularização (surgimento de novos vasos finos – &quot;matting&quot;).</p><p><strong>b) Incomuns: </strong>trombose venosa superficial (flebite); reação alérgica ao agente esclerosante; cefaleia; alterações visuais transitórias (escotomas, flashes luminosos); sensação de pressão torácica transitória; tosse seca transitória.</p><p><strong>c) Raros, porém possíveis: </strong>trombose venosa profunda (TVP); embolia pulmonar; necrose cutânea no local da injeção; infecção local; acidente vascular cerebral isquêmico transitório (especialmente em pacientes com forame oval patente – comunicação interatrial); reação anafilática grave.</p><p><strong>d) Considerações gerais: </strong>o procedimento pode exigir múltiplas sessões para atingir o resultado desejado; não há garantia absoluta de resultado estético ou funcional.</p><p><strong>5. ALTERNATIVAS TERAPÊUTICAS</strong></p><p>Fui informado(a) das demais opções de tratamento disponíveis para o meu caso: uso de meia elástica compressiva, escleroterapia com solução líquida convencional, cirurgia convencional de varizes (flebectomia / safenectomia), termoablação endovenosa por laser (EVLT) ou radiofrequência (VNUS/ClosureFast), entre outras. Optei, em conjunto com meu médico, pelo tratamento com espuma densa.</p><p><strong>6. CUIDADOS PÓS-PROCEDIMENTO</strong></p><p>Recebi as orientações relativas aos cuidados após o procedimento: uso de meia elástica compressiva pelo período indicado pelo médico; evitar exposição solar direta nas áreas tratadas; evitar atividade física de alta intensidade nas primeiras 48 horas; caminhar normalmente; retornar imediatamente ao serviço ou pronto-socorro em caso de dor intensa, inchaço importante, vermelhidão excessiva, febre, alterações visuais ou qualquer sintoma preocupante.</p><p><strong>7. ESCLARECIMENTOS E DIREITO DE RECUSA</strong></p><p>Declaro que, além das informações constantes neste Termo, fui esclarecido(a) verbalmente pelo médico responsável, tendo tido oportunidade de sanar todas as minhas dúvidas. Sei que posso revogar este consentimento a qualquer momento antes da realização do procedimento, sem qualquer prejuízo ao meu acompanhamento e tratamento.</p><p><strong>8. DOCUMENTAÇÃO CIENTÍFICA</strong></p><p>Autorizo a documentação fotográfica ou em vídeo do tratamento, que poderá ser utilizada para fins científicos e/ou didáticos, garantindo-se o sigilo e o anonimato conforme a legislação vigente (Lei nº 13.709/2018 – LGPD).</p><p><strong>DECLARAÇÃO E ASSINATURAS</strong></p><p>Declaro que li (ou que me foi lido) e compreendi o conteúdo deste Termo de Consentimento Livre e Esclarecido, que todas as minhas dúvidas foram devidamente esclarecidas e que concordo, de forma livre e consciente, com a realização do procedimento descrito.</p><p>Caxias do Sul, _______ de __________________________ de ____________.</p><p>_______________________________________________</p><p><strong>Assinatura do Paciente / Representante Legal</strong></p><p>Nome: _______________________________________________     Doc.: _____________________</p><p>_______________________________________________</p><p><strong>Assinatura e Carimbo do Médico Responsável</strong></p><p>(Carimbo com nome completo, especialidade e CRM)</p><p>_______________________________________________</p><p><strong>Assinatura da Testemunha (opcional)</strong></p><p>Nome: _______________________________________________</p><p>Este documento é emitido em duas vias: uma para o paciente e uma para o prontuário médico.</p><p>Hospital Geral de Caxias do Sul | Universidade de Caxias do Sul – UCS</p>
+      </div>
+      <div class="termo-actions">
+        <button class="btn-primary btn-verde" onclick="imprimirTermo('espuma')">🖨️ Imprimir Termo</button>
+        <button class="btn-primary" style="background:var(--azul-med)" onclick="baixarTermo('espuma')">⬇️ Baixar HTML</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="modal-editar">
+  <div class="modal">
+    <h3>✏️ Editar Paciente <span class="close-btn" onclick="fecharModal()">✕</span></h3>
+    <input type="hidden" id="edit-idx">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Nome</label>
+      <input type="text" id="edit-nome">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Etapa Atual</label>
+      <select id="edit-etapa">
+        <option value="triagem">1ª Chamada / Triagem</option>
+        <option value="termo">Aguardando Assinatura do Termo</option>
+        <option value="fila-espuma">Fila — Espuma</option>
+        <option value="fila-cirurgia">Fila — Cirurgia</option>
+        <option value="agendado">Agendado</option>
+        <option value="concluido">Concluído</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Procedimento</label>
+      <select id="edit-proc">
+        <option value="">Não definido</option>
+        <option value="espuma">Espuma</option>
+        <option value="cirurgia">Cirurgia</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Termo de Conhecimento</label>
+      <select id="edit-termo">
+        <option value="nao">Não assinado</option>
+        <option value="sim">Assinado</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>Observações</label>
+      <textarea id="edit-obs" rows="3"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" onclick="salvarEdicao()">💾 Salvar</button>
+      <button class="btn-primary" style="background:#555" onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DADOS =====
+let pacientes = JSON.parse(localStorage.getItem('varizes_pac') || '[]');
+let agendamentos = JSON.parse(localStorage.getItem('varizes_ag') || '[]');
+let filtroAtual = 'todos';
+let buscaAtual = '';
+
+function salvar() {
+  localStorage.setItem('varizes_pac', JSON.stringify(pacientes));
+  localStorage.setItem('varizes_ag', JSON.stringify(agendamentos));
+}
+
+// ===== TABS =====
+function showTab(id) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'pacientes') renderPacientes();
+  if (id === 'agenda') { renderAgenda(); atualizarPacientesAgenda(); }
+}
+
+// ===== CLOCK =====
+function atualizarClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(atualizarClock, 1000);
+atualizarClock();
+
+// ===== CADASTRO =====
+function cadastrarPaciente() {
+  const nome = document.getElementById('f-nome').value.trim();
+  const dataChamada = document.getElementById('f-data-chamada').value;
+  const etapa = document.getElementById('f-etapa').value;
+  const alerta = document.getElementById('alert-cadastro');
+
+  if (!nome) { showAlert(alerta, 'error', 'Informe o nome do paciente.'); return; }
+  if (!dataChamada) { showAlert(alerta, 'error', 'Informe a data da 1ª chamada.'); return; }
+
+  const p = {
+    id: Date.now(),
+    nome,
+    cpf: document.getElementById('f-cpf').value,
+    nasc: document.getElementById('f-nasc').value,
+    tel: document.getElementById('f-tel').value,
+    dataChamada,
+    medico: document.getElementById('f-medico').value,
+    procedimento: document.getElementById('f-procedimento').value,
+    etapa,
+    termo: document.getElementById('f-termo').value,
+    obs: document.getElementById('f-obs').value,
+    dataCadastro: new Date().toISOString()
+  };
+
+  pacientes.unshift(p);
+  salvar();
+  showAlert(alerta, 'success', `Paciente "${nome}" cadastrado com sucesso!`);
+  limparForm();
+  renderDashboard();
+}
+
+function limparForm() {
+  ['f-nome','f-cpf','f-nasc','f-tel','f-data-chamada','f-medico','f-obs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-procedimento').value = '';
+  document.getElementById('f-etapa').value = 'triagem';
+  document.getElementById('f-termo').value = 'nao';
+}
+
+// ===== RENDER DASHBOARD =====
+function renderDashboard() {
+  document.getElementById('stat-total').textContent = pacientes.length;
+  document.getElementById('stat-triagem').textContent = pacientes.filter(p => p.etapa === 'triagem' || p.etapa === 'termo').length;
+  document.getElementById('stat-espuma').textContent = pacientes.filter(p => p.etapa === 'fila-espuma').length;
+  document.getElementById('stat-cirurgia').textContent = pacientes.filter(p => p.etapa === 'fila-cirurgia').length;
+
+  const tbody = document.getElementById('tbody-dashboard');
+  const lista = pacientes.slice(0, 8);
+  if (!lista.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum paciente cadastrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(p => `
+    <tr>
+      <td>${p.nome}</td>
+      <td>${p.cpf || '—'}</td>
+      <td>${formatarData(p.dataChamada)}</td>
+      <td>${badgeEtapa(p.etapa)}</td>
+      <td>${badgeProc(p.procedimento)}</td>
+    </tr>
+  `).join('');
+}
+
+// ===== RENDER PACIENTES =====
+function renderPacientes() {
+  const tbody = document.getElementById('tbody-pacientes');
+  let lista = [...pacientes];
+  if (filtroAtual !== 'todos') lista = lista.filter(p => p.etapa === filtroAtual);
+  if (buscaAtual) {
+    const b = buscaAtual.toLowerCase();
+    lista = lista.filter(p => p.nome.toLowerCase().includes(b) || (p.cpf || '').includes(b));
+  }
+  if (!lista.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nenhum paciente encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map((p, i) => `
+    <tr>
+      <td style="color:#888;font-size:12px">${pacientes.indexOf(p) + 1}</td>
+      <td><strong>${p.nome}</strong></td>
+      <td>${p.cpf || '—'}</td>
+      <td>${p.tel || '—'}</td>
+      <td>${p.medico || '—'}</td>
+      <td>${badgeEtapa(p.etapa)}</td>
+      <td>${badgeProc(p.procedimento)}</td>
+      <td>${p.termo === 'sim' ? '<span style="color:#2e7d32;font-weight:700">✔ Sim</span>' : '<span style="color:#c62828">✗ Não</span>'}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn-sm btn-roxo" onclick="abrirEdicao(${pacientes.indexOf(p)})">✏️</button>
+        <button class="btn-sm btn-danger" onclick="removerPaciente(${pacientes.indexOf(p)})">🗑</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filtrar(etapa, btn) {
+  filtroAtual = etapa;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPacientes();
+}
+
+function buscar(v) { buscaAtual = v; renderPacientes(); }
+
+function filtrarPorEtapa(etapa) {
+  showTab('pacientes');
+  filtroAtual = etapa;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.includes(etapa) || (etapa === 'todos'));
+  });
+  renderPacientes();
+}
+
+// ===== EDIÇÃO =====
+function abrirEdicao(idx) {
+  const p = pacientes[idx];
+  document.getElementById('edit-idx').value = idx;
+  document.getElementById('edit-nome').value = p.nome;
+  document.getElementById('edit-etapa').value = p.etapa;
+  document.getElementById('edit-proc').value = p.procedimento || '';
+  document.getElementById('edit-termo').value = p.termo;
+  document.getElementById('edit-obs').value = p.obs || '';
+  document.getElementById('modal-editar').classList.add('open');
+}
+
+function fecharModal() { document.getElementById('modal-editar').classList.remove('open'); }
+
+function salvarEdicao() {
+  const idx = parseInt(document.getElementById('edit-idx').value);
+  pacientes[idx].nome = document.getElementById('edit-nome').value;
+  pacientes[idx].etapa = document.getElementById('edit-etapa').value;
+  pacientes[idx].procedimento = document.getElementById('edit-proc').value;
+  pacientes[idx].termo = document.getElementById('edit-termo').value;
+  pacientes[idx].obs = document.getElementById('edit-obs').value;
+  salvar();
+  fecharModal();
+  renderPacientes();
+  renderDashboard();
+}
+
+function removerPaciente(idx) {
+  if (!confirm(`Remover "${pacientes[idx].nome}" do sistema?`)) return;
+  pacientes.splice(idx, 1);
+  salvar();
+  renderPacientes();
+  renderDashboard();
+}
+
+// ===== AGENDA =====
+const AGENDA_CONFIG = {
+  triagem: {
+    etapas: ['triagem', 'termo'],
+    label: 'triagem',
+    icon: '📞'
+  },
+  espuma: {
+    etapas: ['fila-espuma'],
+    label: 'espuma',
+    icon: '💉'
+  },
+  cirurgia: {
+    etapas: ['fila-cirurgia'],
+    label: 'cirurgia',
+    icon: '🏨'
+  }
+};
+
+function atualizarPacientesAgenda() {
+  popularSelectPacientes();
+}
+
+function popularSelectPacientes() {
+  const tipo = document.getElementById('ag-tipo').value;
+  const cfg = AGENDA_CONFIG[tipo];
+  const sel = document.getElementById('ag-paciente');
+  const elegíveis = pacientes.filter(p => cfg.etapas.includes(p.etapa));
+  sel.innerHTML = elegíveis.length
+    ? elegíveis.map(p => `<option value="${p.id}">${p.nome}${p.cpf ? ' — ' + p.cpf : ''}</option>`).join('')
+    : '<option value="">Nenhum paciente disponível para esta agenda</option>';
+}
+
+function agendarPaciente() {
+  const alerta = document.getElementById('alert-agenda');
+  const tipo = document.getElementById('ag-tipo').value;
+  const pacId = document.getElementById('ag-paciente').value;
+  const data = document.getElementById('ag-data').value;
+  const hora = document.getElementById('ag-hora').value;
+
+  if (!pacId) { showAlert(alerta, 'error', 'Selecione um paciente.'); return; }
+  if (!data) { showAlert(alerta, 'error', 'Informe a data.'); return; }
+  if (!hora) { showAlert(alerta, 'error', 'Informe o horário.'); return; }
+
+  const pac = pacientes.find(p => p.id == pacId);
+  const ag = {
+    id: Date.now(),
+    pacienteId: pacId,
+    nome: pac.nome,
+    tipoAgenda: tipo,
+    procedimento: tipo === 'triagem' ? 'triagem' : pac.procedimento,
+    data,
+    hora,
+    local: document.getElementById('ag-local').value,
+    obs: document.getElementById('ag-obs').value
+  };
+
+  agendamentos.push(ag);
+  if (tipo !== 'triagem') pac.etapa = 'agendado';
+  salvar();
+
+  const nomes = { triagem: '1ª Consulta / Triagem', espuma: 'Espuma', cirurgia: 'Cirurgia' };
+  showAlert(alerta, 'success', `Agendamento de "${pac.nome}" (${nomes[tipo]}) confirmado!`);
+  renderAgenda();
+  popularSelectPacientes();
+  // limpar campos
+  document.getElementById('ag-data').value = '';
+  document.getElementById('ag-hora').value = '';
+  document.getElementById('ag-local').value = '';
+  document.getElementById('ag-obs').value = '';
+}
+
+function renderAgendaSection(tipo, divId) {
+  const cfg = AGENDA_CONFIG[tipo];
+  // suporta tanto tipoAgenda (novo) quanto procedimento (legado)
+  const lista = agendamentos
+    .filter(a => (a.tipoAgenda || a.procedimento) === tipo)
+    .sort((a, b) => (a.data + a.hora).localeCompare(b.data + b.hora));
+
+  const div = document.getElementById(divId);
+  if (!lista.length) {
+    div.innerHTML = `<div class="agenda-empty">Nenhum agendamento de ${cfg.label}.</div>`;
+    return;
+  }
+  div.innerHTML = `<div class="agenda-items-grid">${lista.map(a => `
+    <div class="agenda-item ${tipo}">
+      <div class="ai-nome">${cfg.icon} ${a.nome}</div>
+      <div class="ai-data">📅 ${formatarData(a.data)} às ${a.hora}${a.local ? ' · 📍 ' + a.local : ''}</div>
+      ${a.obs ? `<div class="ai-obs">${a.obs}</div>` : ''}
+    </div>`).join('')}</div>`;
+}
+
+function renderAgenda() {
+  renderAgendaSection('triagem', 'agenda-triagem');
+  renderAgendaSection('espuma', 'agenda-espuma');
+  renderAgendaSection('cirurgia', 'agenda-cirurgia');
+}
+
+// ===== HELPERS =====
+function badgeEtapa(e) {
+  const map = {
+    triagem: ['badge-triagem','📞 Triagem'],
+    termo: ['badge-termo','📋 Termo'],
+    'fila-espuma': ['badge-espuma','💉 Fila Espuma'],
+    'fila-cirurgia': ['badge-cirurgia','🏨 Fila Cirurgia'],
+    agendado: ['badge-agendado','📅 Agendado'],
+    concluido: ['badge-concluido','✅ Concluído']
+  };
+  const [cls, label] = map[e] || ['','—'];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function badgeProc(p) {
+  if (p === 'espuma') return '<span class="badge badge-espuma">💉 Espuma</span>';
+  if (p === 'cirurgia') return '<span class="badge badge-cirurgia">🏨 Cirurgia</span>';
+  return '<span style="color:#aaa;font-size:12px">—</span>';
+}
+
+function formatarData(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+function showAlert(el, type, msg) {
+  el.className = 'alert ' + type;
+  el.textContent = msg;
+  setTimeout(() => { el.className = 'alert'; el.textContent = ''; }, 4000);
+}
+
+
+const SEED_PACIENTES = [{"id":1000,"nome":"ADELAIDE CAROLINA CAMASSOLA","cpf":"","nasc":"","tel":"","dataChamada":"2019-10-16","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"concluido","termo":"nao","obs":"Realizou procedimento MIE - Aguarda para MID (ENTRADO EM CONTATO COM A PAC POR TELEFONE, A MESMA REFERE NÃO TER REALIZADO PROCEDIMENTO POR APRESENTAR ÚLCERAS EM MEMBRO INFERIOR D, TEM INTERESSE DE REALIZAR O PROCEDIMENTO)","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1001,"nome":"ELIANE INES DA ROSA CAMPOS","cpf":"","nasc":"","tel":"","dataChamada":"2019-12-18","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Paciente aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1002,"nome":"GETULIO CARVALHO DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2019-10-28","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Paciente aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1003,"nome":"LOURDES MARIA TRENTIN DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2020-06-04","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Paciente aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1005,"nome":"MARIA DE FATIMA DA ROSA CAMPOS","cpf":"","nasc":"","tel":"","dataChamada":"2021-11-20","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta 10/03/26 - retorno em 1meses","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1006,"nome":"ALTINO ALVES VARELA","cpf":"","nasc":"","tel":"","dataChamada":"2022-02-14","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta em 25/07/2025, retorno em 1 ano para nova avaliação","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1007,"nome":"PAULO BONATTO","cpf":"","nasc":"","tel":"","dataChamada":"2022-06-09","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros de plano de cirurgia, atendimento por outra causa","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1008,"nome":"LUIZ JUSCEL DE OLIVEIRA COSTA","cpf":"","nasc":"","tel":"","dataChamada":"2022-04-19","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros de atendimentos no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1009,"nome":"CARMEM LUCIA MAZIERO","cpf":"","nasc":"","tel":"","dataChamada":"2022-06-09","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Avaliação médica em 2024, médico evolui somente plano para cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1011,"nome":"BERNARDETE DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2022-04-20","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Procedimento cancelado por BRADI ARRITMIA. sem novo registro de consulta.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1012,"nome":"CELSO INACIO BAUMGARTEN","cpf":"","nasc":"","tel":"","dataChamada":"2022-01-20","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1013,"nome":"ANTONIO CASTILHO DUARTE","cpf":"","nasc":"","tel":"","dataChamada":"2022-05-19","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registro sobre o procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1014,"nome":"SIMONE PINTO RAMOS","cpf":"","nasc":"","tel":"","dataChamada":"2022-04-27","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1015,"nome":"RADAMES SOUZA SUBTIL","cpf":"","nasc":"","tel":"","dataChamada":"2022-03-29","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1017,"nome":"ROSMARI CHAVES DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2022-01-11","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1018,"nome":"PAULO ROBERTO DA SILVA SOUZA","cpf":"","nasc":"","tel":"","dataChamada":"2022-03-22","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Registro de retirada de varizes em 2018","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1019,"nome":"PAULA CRISTINA RECH","cpf":"","nasc":"","tel":"","dataChamada":"2022-05-25","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1022,"nome":"NOELI DA SILVA BORGES","cpf":"","nasc":"","tel":"","dataChamada":"2022-09-12","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1025,"nome":"ROSINHA DE FATIMA VIEGA","cpf":"","nasc":"","tel":"","dataChamada":"2022-08-22","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1026,"nome":"CLAUDIOMIRO FERREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2022-08-03","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1027,"nome":"MERIELEN DE FATIMA REIS","cpf":"","nasc":"","tel":"","dataChamada":"2022-10-31","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"não encontro paciente em sistema, somente com último sobrenome Borges","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1028,"nome":"SUSANA VON MULLER DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2022-08-17","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 2025, solicitação de exames pré op. Aguarda cirurgia.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1029,"nome":"ANTONIO OLIVEIRA FILHO","cpf":"","nasc":"","tel":"","dataChamada":"2022-10-10","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Paciente em investigação de hemangioma hepático com Dr. Roberto Heck .","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1030,"nome":"ITALO DA SILVA PEREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2022-07-29","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1031,"nome":"LINA APARECIDA SCOPEL","cpf":"","nasc":"","tel":"","dataChamada":"2022-10-21","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1032,"nome":"ANGELA PEREIRA LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2022-12-19","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1033,"nome":"EDINARA DE GOES LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2022-10-11","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1034,"nome":"MARCELO DE LIMA RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2022-08-25","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 2025 com orientações e seguimento ambulatorial, sem descrição de procedimento cirúrgico no momento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1038,"nome":"HORISONTE ESPINDOLA","cpf":"","nasc":"","tel":"","dataChamada":"2023-04-28","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1039,"nome":"SILVONEI KOZAK","cpf":"","nasc":"","tel":"","dataChamada":"2023-06-29","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 2024 com solicitação de exames, aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1042,"nome":"SILVANA PICCOLI","cpf":"","nasc":"","tel":"","dataChamada":"2023-06-27","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1044,"nome":"NADREIA MANICA LOPES","cpf":"","nasc":"","tel":"","dataChamada":"2023-03-23","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1045,"nome":"DIUNE DIAS CONCEICAO MARQUES","cpf":"","nasc":"","tel":"","dataChamada":"2023-06-20","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Seguimento com cardiologia.US doppler venoso de membros inferiores. 03,03,2026","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1054,"nome":"ORETE DE FATIMA SANTOS DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2023-05-09","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 2024 com solicitação de exames pré op. atualizados","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1055,"nome":"ANTONIO ROBERTO DA SILVA VELHO","cpf":"","nasc":"","tel":"","dataChamada":"2023-06-29","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1058,"nome":"NEIVA FACCHIN","cpf":"","nasc":"","tel":"","dataChamada":"2023-02-15","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1062,"nome":"ANA CRISTINA DA SILVA VIEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2023-06-19","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1064,"nome":"CARINA EBERTZ DE LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2023-07-03","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"concluido","termo":"nao","obs":"Realizou procedimento em 2015. Entrar em contato com o paciente.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1065,"nome":"MARIA DERCINA PEREIRA KLANOVICZ","cpf":"","nasc":"","tel":"","dataChamada":"2023-07-03","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1066,"nome":"CARLOS ZANOTTO","cpf":"","nasc":"","tel":"","dataChamada":"2023-07-03","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1069,"nome":"VERA MARIA DE SOUZA","cpf":"","nasc":"","tel":"","dataChamada":"2023-07-18","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1073,"nome":"TEREZINHA TAVARES FERREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-01","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 02/2025, médico descreve - Paciente no Trello, oriento aguardar ligação para agendar cirurgia.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1074,"nome":"LURDECI PALHANO SCARSI","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1075,"nome":"CLENIR DE JESUS VERLINDO","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1078,"nome":"MENAIDE MONTEIRO PEREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-07","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1082,"nome":"ZELI ANTUNES TEIXEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-29","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1083,"nome":"GELCI INES ONSI BAMPI","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-31","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1084,"nome":"ILDA MARIA MARTINS SEVERO","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-31","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"concluido","termo":"nao","obs":"Procedimento realizado em 08/2023 - laudo após cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1086,"nome":"LUCILEIA TONIELLO","cpf":"","nasc":"","tel":"","dataChamada":"2023-08-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1092,"nome":"JOSE VANDERLEI DOS REIS","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1094,"nome":"CARLOS HENRIQUE LINDEMAIER DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-19","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1095,"nome":"CLEUZA DE FATIMA RIBEIRO MOTA","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-19","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1096,"nome":"SILVIA TERESINHA BOCASANTA","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-20","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1097,"nome":"MARIA LUCIA PEREIRA DE MELO","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-27","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 07/24 médico descreve somente sobre a cirurgia de embolização de aneurisma de aorta esplênica, sem registros de programação para tratamento de varizes.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1099,"nome":"ZELI CRISTIANE GARCIA RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2023-09-04","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1101,"nome":"ALBERTO MAGNO PEREIRA POSSIDONIO","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-03","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1103,"nome":"ANDREA FURMANOVICZ","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-11","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1105,"nome":"VERA LUCIA GONCALVES DE CORDOVA","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-18","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1106,"nome":"IVANETE DE OLIVEIRA PAGANELLA","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-19","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1107,"nome":"GECI TERESINHA BEDIN","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-23","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1109,"nome":"ELVIRA CARNEIRO DALL ALBA","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-25","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 07/24, médico encaminha para cardiologista pré op e coloca paciente no trello.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1110,"nome":"FRANCISCO DE ASSIS DE LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2023-10-31","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1112,"nome":"MARIA DEODETE TORRES PINTO","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-06","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato com o paciente.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1113,"nome":"ADAO CARLOS DAROS MACHADO","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-07","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato com o paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1114,"nome":"ANTONIO LUIZ DA ROSA RIBEIRO","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-07","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato com o paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1115,"nome":"CEDEMIR RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1117,"nome":"CLAUDETE NASCIMENTO VIDAL","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-28","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 08/24, médica descreve plano de cirugia e coloca paciente no trello.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1119,"nome":"ANGELA MARIA CHAVES DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-28","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/24, médico registra marcação de procedimento para 15/05/24, contudo , sem registros novos sobre a cirurgia. Entrar em contato com paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1121,"nome":"SOLANGE VICENCIA DA SILVA BORGES","cpf":"","nasc":"","tel":"","dataChamada":"2023-11-30","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 08/24, paciente recebeu alta ambulatorial, sem registros sobre procedimento cirurgico. Entrar em contato com paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1125,"nome":"ALFREDO DE MELLO DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2023-12-04","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1127,"nome":"CATIA COSTA DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2023-12-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 2025, solicitação  de exames, sem registro sobre procedimento. Entrar em contato com paciente;","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1128,"nome":"JANETE RODRIGUES PADILHA","cpf":"","nasc":"","tel":"","dataChamada":"2023-12-07","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1129,"nome":"JOSE SOEDI LEITE","cpf":"","nasc":"","tel":"","dataChamada":"2023-12-11","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1130,"nome":"CARINE SOARES CHAVES","cpf":"","nasc":"","tel":"","dataChamada":"2023-12-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1133,"nome":"PRISCILA GIROTTO ALVES DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2024-01-15","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Tem interesse, aguarda cirurgia. Não tem exames Pré Op.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1134,"nome":"ZENI DE FATIMA LEMOS DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2024-01-22","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1136,"nome":"JUSSARA SEEFELD","cpf":"","nasc":"","tel":"","dataChamada":"2024-01-30","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES COM INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1138,"nome":"MARIA IRANI DOS SANTOS MARTINS","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-06","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1139,"nome":"VALQUIRIA VIVIANE BRANDO","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-06","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1140,"nome":"EVANDRO SILVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-20","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1141,"nome":"MAGDA TEREZINHA PORTARRIAUX RIBEIRO","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-19","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1142,"nome":"JANDIRA LOURDES HELD TELLES","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-26","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1143,"nome":"GENECI DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-28","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1144,"nome":"ADILES MARIA CAMILLO MACHADO","cpf":"","nasc":"","tel":"","dataChamada":"2024-02-05","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato com o paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1149,"nome":"IRIDINEU DE ARAUJO DA SILVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1150,"nome":"LUCIANE NUNES DE AZEVEDO","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-13","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Sem registros sobre procedimento, entrar em contato com paciente.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1152,"nome":"MARILEIDE MAGNUS MACIEL","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-14","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1153,"nome":"NEUSA HOMEM POZZEBON","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-18","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1154,"nome":"ADELAR ANTONIO DOS PASSOS","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-20","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1155,"nome":"LUIS ANTONIO BERGOZZA","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-28","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1156,"nome":"CLEUSA VIEIRA DE ALBUQUERQUE REGULA","cpf":"","nasc":"","tel":"","dataChamada":"2024-03-28","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1158,"nome":"ANDREIA MARIA BAUNGARTEN","cpf":"","nasc":"","tel":"","dataChamada":"2024-04-08","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Forneço AIH para correção de varizes de MIE,  sem outros registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1160,"nome":"VILMAR VANIN","cpf":"","nasc":"","tel":"","dataChamada":"2024-04-09","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1162,"nome":"MARCIA GISELE SILVA MOREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-04-11","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1164,"nome":"SILVIA APARECIDA DE SOUZA LUZ LORO","cpf":"","nasc":"","tel":"","dataChamada":"2024-04-18","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1168,"nome":"OTILIA GASPAR DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2024-05-07","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1169,"nome":"IVANILDE BELTRAME PEDROTTI","cpf":"","nasc":"","tel":"","dataChamada":"2024-05-13","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre solicitação de procedimento (Aguarda cirurgia)","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1170,"nome":"ELENICE TEREZINHA DANELLI","cpf":"","nasc":"","tel":"","dataChamada":"2024-05-14","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1173,"nome":"CASSIANA JAQUELINE SCOTTI DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"sem registros sobre procedimento no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1175,"nome":"ELECI CATARINA DA SILVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-19","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Entrar em contato, paciente não veio para mostrar os exames PO","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1177,"nome":"CLAUDETE TERESINHA INDICATTI BUENO","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-20","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1179,"nome":"JACIR ANTONIO DE CARVALHO","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-27","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Esteve em consulta 11/03/25, aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1180,"nome":"MARIA SUELI DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-26","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial, médico registra que coloca paciente no trello e fornece laudo","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1181,"nome":"MARLENE TRINDADE","cpf":"","nasc":"","tel":"","dataChamada":"2024-06-27","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consultaambulatorial 03/25, médico registra que encaminha paciente para o nutricionista e coloca paciente no trello, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1182,"nome":"SILVIA MARIA BARETTA","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-01","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda Procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1183,"nome":"ILBERTO LUIZ BLODORN","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-01","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 07/24, médico fornece nova AIH, solicita exames de imagem e laboratoriais, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1184,"nome":"ERICA ESTELA PADILHA DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-05","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta em 11/25 medico aguarda retorno em 6 meses aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES COM INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1185,"nome":"CLAIR PAIM FERREIRA","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-08","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 23/02/2026, solicitado exames pre operatorios, aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1186,"nome":"ELISABETE BORGES DE LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-08","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 07/24, médico registra que fornece AIH e solicita exames laboratoriais, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES COM INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1187,"nome":"ADRIANA SCAPIN DE RAMOS","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-10","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 07/24, médico registra que fornece AIH, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1189,"nome":"ANA PAULA MACULAN","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-19","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 07/24, médico fornece AIH e solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1192,"nome":"JUAREZ ANTONIO PERINI","cpf":"","nasc":"","tel":"","dataChamada":"2024-07-31","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Comparece a consulta com cardio dia 22/04/25, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1199,"nome":"ELISANGELA NUNES RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2024-09-13","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 09/24, médico coloca paciente na lista trello e orienta o mesmo aguardar ser chamado para procedimento","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1202,"nome":"GILBERTO WENTZ","cpf":"","nasc":"","tel":"","dataChamada":"2024-09-18","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Esteve em consulta pre operatoria com cardio dia 13/01/26, ainda aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1203,"nome":"RITA VENSON FIAMINGHI","cpf":"","nasc":"","tel":"","dataChamada":"2024-09-24","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 12/08/25, orientação de retorno com exames, aguarda procedimento ainda.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1204,"nome":"DEISE LOPES","cpf":"","nasc":"","tel":"","dataChamada":"2024-09-12","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 09/24, médico solicita AIH e exames lab, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1208,"nome":"FABIANE DO AMORIN","cpf":"","nasc":"","tel":"","dataChamada":"2024-10-08","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"TEM INTERESSE. AGUARDA CIRURGIA","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1211,"nome":"CLAUDIA DE FIGUEREDO LIMA","cpf":"","nasc":"","tel":"","dataChamada":"2024-10-24","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"TEM INTERESSE, AGUARDA PROCEDIMENTO, TEM EXAME PRÉ OPERATÓRIO DE 2024","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1217,"nome":"ROSA MARIA INACIO DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2024-11-29","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 05/25, médica registra : lesão ulcerada contraindicando a cirurgia nesse momento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1218,"nome":"GILMAR ANTONIO PEIXOTO RIBEIRO","cpf":"","nasc":"","tel":"","dataChamada":"2024-11-29","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 11/24, fornece AIH, adciona no trello e solicita exames pré op, aguarda ainda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1222,"nome":"IRANI TEREZINHA MAGERL RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2024-12-11","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 07/25, conforme registro, adicionada ao trello, solicitado aval. da cardio. e anestesista, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1223,"nome":"MARCIA DE FATIMA VIANNA","cpf":"","nasc":"","tel":"","dataChamada":"2024-12-11","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 12/24, fornecido laudo do procedimento e solicitado aval. da cardio.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1224,"nome":"ALEXANDRE DE SOUZA FREITAS","cpf":"","nasc":"","tel":"","dataChamada":"2024-12-13","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 12/24, médica fornece AIH para procedimento e solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1226,"nome":"NILSI SCHEER RINALDI","cpf":"","nasc":"","tel":"","dataChamada":"2025-01-08","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 01/25, médico fornece AIH e solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1230,"nome":"MIGUEL SOUZA","cpf":"","nasc":"","tel":"","dataChamada":"2025-01-14","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 01/25, médico fornece AIH, solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1236,"nome":"SIMONE MARIA BONHO","cpf":"","nasc":"","tel":"","dataChamada":"2025-02-10","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 02/25, médico fornece AIH e solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1237,"nome":"JUDITH SEZARINA PADILHA GOMES","cpf":"","nasc":"","tel":"","dataChamada":"2025-01-09","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Ultima consulta ambulatorial em 06/24, solicitado exames pré. op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1238,"nome":"SADI ERNESTO DALLA VECCHIA","cpf":"","nasc":"","tel":"","dataChamada":"2025-02-14","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 02/25, solicitado exames pré. op, aguarda procedimento ainda.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1242,"nome":"LEOMAR ANTONIO FESTA","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-06","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Sem registros no tasy","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1244,"nome":"ROSIANE DE MACEDO MACIEL","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-20","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 03/25, médico adiciona paciente no trello e fornece AIH, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1245,"nome":"LUIZ ANTONIO DE MELO","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-20","medico":"Vinicius Victorazzi Lain","procedimento":"espuma","etapa":"fila-espuma","termo":"nao","obs":"Consulta ambulatorial 03/25, médico indica para cirurgia vascular com espuma, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1249,"nome":"MARIA LUCIA DITZEL DE ANDRADE","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-24","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 03/25, médico coloca paciente no trello, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1250,"nome":"IRMA BEATRIZ FERNANDES","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-25","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 03/25, médico fornece AIH para procedimento, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1251,"nome":"TERESA FERNANDA DOS SANTOS TOMASETTO","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-26","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Sem registros no tasy","cid":"VARIZES PÉLVICAS","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1252,"nome":"ADRIANO LINDHOLZ DE CAMARGO","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-26","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 03/26 ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1253,"nome":"ASSUNTA SCAIN","cpf":"","nasc":"","tel":"","dataChamada":"2025-03-27","medico":"Vinicius Victorazzi Lain","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 03/25, médico fornece laudo do procedimento, solicita exames pré op. e aval. cardio, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1255,"nome":"LUCIA DE FATIMA MOLON","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-01","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial 05/25, médico descreve: Já está no Trello - atualizo informação para agendar cx , ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1256,"nome":"LEONILDA BARISON DE ALEXANDRE","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-01","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1257,"nome":"VALDEVINO RIBEIRO DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-02","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 02/26 medico solicita labs e coloca no trello, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1258,"nome":"SIRENA BECKER","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-02","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1259,"nome":"CLAUDIA ROBERTA BOURBON PINTO DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-07","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH, solicita exames e coloca paciente no trello, aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1260,"nome":"IVAN BENEDITO MAINARDES","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-08","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico solicita exames pré op, ainda aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES COM INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1265,"nome":"SUELY BOECK WITT","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-14","medico":"Sergio Ventura Gomes Junior","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1266,"nome":"HONORINO VERGANI","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-11","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH","cid":"VARIZES DOS MEMBROS INFERIORES COM INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1267,"nome":"ELISEU GOMES DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-11","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 10/24, médico solicita exame imegem, aguarda retorno com resultado do exame para agendamento cirurgico","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1268,"nome":"NOELI DEMETRIO CORREA","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-15","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH e solicita exames pré op.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1275,"nome":"BRUNA PAULA DRUM","cpf":"","nasc":"","tel":"","dataChamada":"2025-04-29","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta ambulatorial em 04/25, médico fornece AIH e coloca paciente na lista para procedimento","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1276,"nome":"ALEX JUNIOR BERTIN","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-06","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Consulta CECLIN 06/05/25, fornecido AIH, solicitado exames","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1281,"nome":"ELOIZA DA ROSA GOMES","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-09","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"09/05/25 Aguarda procedimento, fornecido AIH+ solicitação de exames e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1284,"nome":"CLEUSA MARIA RAMOS DE FREITAS","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-13","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"13/05/25 Aguarda procediemnto,solicitado laboratoriais, rx tórax, ECG e aval cardio","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1287,"nome":"ROZELI CERVINSKI","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-16","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"16/05/25 Aguarda procedimento, fornecido AIH+ Recomendo que traga EcoDoppler no dia do procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1289,"nome":"ADELAIDE LORANDI","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-20","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"20/05/25 Aguarda procedimento, fornecido AIH+avl. cardio+ solicitação de exames","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1290,"nome":"PAULO ROBERTO MARCHIORO","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-20","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"20/05/25 Aguarda procedimento, fornecido AIH+Solicitado labs e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1292,"nome":"EDELAR LUIS SEEFELD","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-20","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"20/05/25 Aguarda procedimento, Fornecido AIH+adicionado no trello","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA E INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1293,"nome":"SCHEILA SILVA RAMOS","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-20","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"20/05/25 Aguarda procedimento, fornecido AIH+solicitado labs.-13/08/25 retorno em 6 meses com novos labs e ECO","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1294,"nome":"VINICIUS VIEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-21","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"21/05/25 Aguarda procedimento, fornecido AIH+ solicitação de exames e ECG","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1297,"nome":"MARLENE MARIA BERTI CECHIN","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-22","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"07/08/25 Aguarda procedimento, solicitar exames laboratoriais pré-operatórios em próxima consulta .-04/09/25 Retorno em 1 ano","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1299,"nome":"KATIA INES CARDOSO SEBBEN","cpf":"","nasc":"","tel":"","dataChamada":"2025-05-23","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"23/05/25 Aguarda procedimento, fornecido AIH+ solicitação de exames e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1310,"nome":"LEONICE DIAS DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2025-06-12","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"11/09/25 Aguarda procediemnto, fornecido AIH+ecoDoppler + exames. No retorno, adicionar paciente ao trello","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1311,"nome":"ADEMIR DA SILVA PAIM","cpf":"","nasc":"","tel":"","dataChamada":"2025-06-17","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"1706/25 Aguarda procedimento, fornecido AIH+ solicitação de exames","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1314,"nome":"ANGELITA BATISTA DA ROSA","cpf":"","nasc":"","tel":"","dataChamada":"2025-06-24","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"05/08/25 Aguarda procedimento, fornecido AIH+ Retorno em 2 meses","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1315,"nome":"MARINEZ DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2025-06-24","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"12/06/25 sem registro no sistema tasy","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1318,"nome":"ENAIR REIS DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2025-07-01","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"01/07/25 Aguarda procedimento, fornecido AIH+ solicitação de exames e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1321,"nome":"NATALIA COMASHRI COPELI","cpf":"","nasc":"","tel":"","dataChamada":"2025-07-11","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"11/07/25 Aguarda procedimento, fornecido AIH+ Adicionado no Trello","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA E INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1322,"nome":"ZONI SILVEIRA BUENO","cpf":"","nasc":"","tel":"","dataChamada":"2025-07-15","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"15/07/25 Aguarda procediemnto, fornecido AIH+ Adicionado paciente no Trela","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1325,"nome":"MARIA BELONI ANTUNES","cpf":"","nasc":"","tel":"","dataChamada":"2025-07-18","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"18/07/025 aguarda procedimento, Adicionado paciente no trelo Cirurgia de correção de varizes .​Fornecido AIH","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1328,"nome":"ELIANE INES DA ROSA CAMPOS","cpf":"","nasc":"","tel":"","dataChamada":"2025-07-29","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"29/07/25 Aguarda procedimento, fornecido AIH+ Solicitado exames labs e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1330,"nome":"ANTONIO NORECI RAMOS DE OLIVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-07","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"07/08/25 aguarda procedimento, solicitado exames +ECG","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1331,"nome":"MARTA MARGARETE MULLER","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-08","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"08/08/25 Aguarda procedimento, fornecido AIH+ solicitado Exames e ECG, Adicionado paciente TRELLO","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1333,"nome":"CASSIANE PESSATTO DE JESUS","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"12/08/25 Aguarda procedimento, Fornecido AIH","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1334,"nome":"ALBANI REGINA ARROSI","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-12","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"12/08/25 Aguarda procedimento, fornecido AIH+Adicionado ao Trello","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1335,"nome":"CILON MORETO","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-13","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"13/08/25 Aguarda procedimento, solicitado aval.cardio+ exames e ECG","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1342,"nome":"MARCIA BRASILICIA PACHECO DA SILVEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-25","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"fornecido AIH em 25/08 aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1343,"nome":"VIVIANE VARELA","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-26","medico":"LUIZ FELIPE","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"26/08/25 Fornecido AIH, solicitados exames PO,Aguarda procedimento,","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1344,"nome":"CILENE SANTOS DOS SANTOS","cpf":"","nasc":"","tel":"","dataChamada":"2025-08-29","medico":"LUIZ FELIPE","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"29/08/25 Aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1346,"nome":"ADELINA DAROS ROSSO","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-09","medico":"MARCELO CORRALES","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"09/09/25 Aguarda procedimento, Cadastrado paciente no Trello. Solicitado laboratoriais pré-operatórios.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1349,"nome":"SUZANA ERENO NUNES","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-12","medico":"BERNARDO DE VEIGA","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"EM 12/09/2024,FORNECIDO AIH ,SOLICITADOS EXAMES PO aguarda procedimento cirúrgico","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1350,"nome":"MICHELE FERREIRA RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-15","medico":"SERGIO VENTURA","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 15/09/2025,AGUARDA AGENDAMENTO DO PROCEDIMENTO .","cid":"VARIZES PÉLVICAS","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1353,"nome":"SONIA MARIA BERNARDI BEHLING","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-24","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 24/09/2025,SOLICITADOS EXAMES PRE OPERATORIOS,AGUARDA AGENDAMENTO CIRURGICO. TEM INTERESSE","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1356,"nome":"JONAS PUHL","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-23","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"EM 23/09/2025 FORNECIDO AIH ,SOLICITADOS EXAMES PRE OERATORIOS.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1357,"nome":"NEIDE BAMPI","cpf":"","nasc":"","tel":"","dataChamada":"2025-09-30","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 30/09/2025 ,EXAMES PRE OPERATORIOS ,AGUARDA AGENDAMENTO CIRURGICO.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1360,"nome":"OLIVA RODRIGUES","cpf":"","nasc":"","tel":"","dataChamada":"2025-10-03","medico":"Roberto Scheibler Heck","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 03/10/2025,AGUARDA AGENDAMENTO CIRURGICO.","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1366,"nome":"MARIA ROSA DE SOUZA TELLES","cpf":"","nasc":"","tel":"","dataChamada":"2025-11-06","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 06/11/2025.Aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1371,"nome":"JOSE BORGES DA LUZ","cpf":"","nasc":"","tel":"","dataChamada":"2025-11-18","medico":"Herton Luis Vallandro Lopes","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIOD AIH EM 18/11/2025. Aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1372,"nome":"ELI DA SILVA DA ROSA","cpf":"","nasc":"","tel":"","dataChamada":"2025-11-18","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO  AIH  EM 18/11/2025, Aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1373,"nome":"GILBERTO WENTZ","cpf":"","nasc":"","tel":"","dataChamada":"2025-11-19","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda procedimento","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1386,"nome":"ALESSANDRA LOVIZON","cpf":"","nasc":"","tel":"","dataChamada":"2025-12-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH  em 03/12/2025, solicitado exames PO, não voltou para mostrar","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1387,"nome":"JOAO VIDAL CORREA","cpf":"","nasc":"","tel":"","dataChamada":"2025-12-03","medico":"Clandio de Freitas Dutra","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"FORNECIDO AIH EM 03/12/2025, aguarda procedimento.","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1396,"nome":"OTILIA GASPAR DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2026-01-20","medico":"Marcelo Puerari Corrales","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1399,"nome":"DORIANA COLTRO","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-03","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1401,"nome":"LIOMAR DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-10","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1403,"nome":"CHARLENE ADRIANA SOARES","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-23","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1404,"nome":"ERCI FATIMA DE OLIVEIRA DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-25","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA E INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1408,"nome":"IRACI FRAMENTO","cpf":"","nasc":"","tel":"","dataChamada":"2026-04-06","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1411,"nome":"CLEUSA MARIA BOEIRA MORAES","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-02","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1412,"nome":"MARIZETE PADILHA","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-02","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1415,"nome":"MARISA DE FATIMA DOS SANTOS DUTRA","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-10","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1418,"nome":"ITACIR ZUCCO","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-13","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1422,"nome":"CLODOIR CASTILHOS DA COSTA","cpf":"","nasc":"","tel":"","dataChamada":"2026-02-24","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES COM ÚLCERA","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1424,"nome":"ADRIANA SIMONE DE VARGAS","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-04","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1425,"nome":"NEIDE APARECIDA CAPISTRANO DA SILVA","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-09","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1426,"nome":"JOAO MARIA ELOIR BOEIRA","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-10","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1427,"nome":"JEFERSON MADALENA BEC","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-10","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1428,"nome":"VICTOR MANUEL AZUAJE AZUAJE","cpf":"","nasc":"","tel":"","dataChamada":"2026-03-10","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES SEM ÚLCERA OU INFLAMAÇÃO","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1438,"nome":"FERNANDA SALVADOR","cpf":"","nasc":"","tel":"","dataChamada":"2026-04-07","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1446,"nome":"SUZANA BIRK DE BAIRROS","cpf":"","nasc":"","tel":"","dataChamada":"2026-04-14","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1452,"nome":"ADRIANA MARLI DOS SANTOS PEROZZO","cpf":"","nasc":"","tel":"","dataChamada":"2026-04-22","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"},{"id":1453,"nome":"CRISTINE LOPES DE ABREU","cpf":"","nasc":"","tel":"","dataChamada":"2026-04-22","medico":"","procedimento":"cirurgia","etapa":"fila-cirurgia","termo":"nao","obs":"Aguarda cirurgia","cid":"VARIZES DOS MEMBROS INFERIORES","dataCadastro":"2026-06-30T16:32:56.751355"}];
+function seedPacientes() {
+  if (localStorage.getItem('varizes_seed_done')) return;
+  if (!pacientes.length) {
+    pacientes = SEED_PACIENTES.map(p => ({...p}));
+    salvar();
+  }
+  localStorage.setItem('varizes_seed_done', '1');
+}
+
+
+// ===== TERMOS =====
+const TERMOS_HTML = {
+  cirurgia: document.getElementById('termo-body-cirurgia')?.innerHTML || '',
+  espuma: document.getElementById('termo-body-espuma')?.innerHTML || ''
+};
+const TERMOS_TITULO = {
+  cirurgia: 'TCLE — Cirurgia de Varizes dos Membros Inferiores',
+  espuma: 'TCLE — Tratamento com Espuma Densa'
+};
+
+function imprimirTermo(tipo) {
+  const conteudo = document.getElementById('termo-body-' + tipo).innerHTML;
+  const titulo = TERMOS_TITULO[tipo];
+  const win = window.open('', '_blank', 'width=800,height=900');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.7; color: #111; padding: 40px 60px; max-width: 800px; margin: 0 auto; }
+    p { margin-bottom: 8px; }
+    strong { font-weight: bold; }
+    @media print { body { padding: 20px; } }
+  </style></head><body>${conteudo}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
+
+function baixarTermo(tipo) {
+  const conteudo = document.getElementById('termo-body-' + tipo).innerHTML;
+  const titulo = TERMOS_TITULO[tipo];
+  const blob = new Blob([`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${titulo}</title>
+  <style>body{font-family:Arial,sans-serif;font-size:12pt;line-height:1.7;padding:40px 60px;max-width:800px;margin:0 auto}p{margin-bottom:8px}</style>
+  </head><body>${conteudo}</body></html>`], {type: 'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = tipo === 'cirurgia' ? 'TCLE_Cirurgia_Varizes.html' : 'TCLE_Espuma_Densa.html';
+  a.click();
+}
+
+// ===== INIT =====
+seedPacientes();
+renderDashboard();
+</script>
+</body>
+</html>
